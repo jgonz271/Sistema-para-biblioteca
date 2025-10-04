@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { BookService } from '@/services';
-import type { CreateBookDTO } from '@/types';
+import type { CreateBookDTO, BookCategory } from '@/types';
 
 const bookService = BookService.getInstance();
 
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       const byAuthor = bookService.searchByAuthor(search);
       books = [...new Set([...byTitle, ...byAuthor])];
     } else if (category) {
-      books = bookService.filterByCategory(category as any);
+      books = bookService.filterByCategory(category as BookCategory);
     } else if (available === 'true') {
       books = bookService.getAvailableBooks();
     } else {

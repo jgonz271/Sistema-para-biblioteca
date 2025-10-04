@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📚 Sistema de Gestión de Biblioteca
 
-## Getting Started
+Sistema de gestión bibliotecaria que implementa **4 estructuras de datos lineales desde cero**: Lista Enlazada, Cola (Queue), Pila (Stack) y Arreglo Dinámico.
 
-First, run the development server:
+## 🎯 Descripción
+
+Aplicación web fullstack que demuestra el uso práctico de estructuras de datos para resolver problemas reales en un contexto bibliotecario.
+
+## ✨ Funcionalidades
+
+- 📖 **Gestión de Libros** - CRUD completo con búsqueda
+- 👥 **Gestión de Usuarios** - Registro y administración
+- 🔄 **Préstamos** - Control con multas automáticas
+- 🔖 **Reservas** - Sistema de cola FIFO
+- 📜 **Historial** - Registro de operaciones LIFO
+- 📊 **Estadísticas** - Dashboard con métricas
+- 🔔 **Notificaciones** - Feedback visual en tiempo real
+
+## 🛠️ Tecnologías
+
+- **Next.js 15** - Framework React con App Router
+- **TypeScript** - Tipado estático
+- **Material-UI** - Componentes UI
+- **TailwindCSS** - Estilos
+
+## 🏗️ Estructuras de Datos
+
+| Estructura | Uso | Archivo |
+|------------|-----|---------|
+| **LinkedList** | Catálogo de libros y usuarios | `LinkedList.ts` |
+| **Queue (FIFO)** | Sistema de reservas | `Queue.ts` |
+| **Stack (LIFO)** | Historial de operaciones | `Stack.ts` |
+| **DynamicArray** | Gestión de préstamos | `DynamicArray.ts` |
+
+## 🚀 Inicio Rápido
 
 ```bash
+# Instalar dependencias
+npm install
+
+# Ejecutar en desarrollo
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Abrir en navegador
+http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 📁 Estructura
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+src/
+├── app/                    # Páginas y API Routes
+│   ├── api/               # Endpoints REST
+│   └── [modulos]/         # Páginas de la app
+├── lib/
+│   └── data-structures/   # Estructuras implementadas
+├── services/              # Lógica de negocio
+├── components/            # Componentes React
+└── types/                 # Tipos TypeScript
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🔌 API Principal
 
-## Learn More
+```
+GET/POST    /api/books          # Libros
+GET/POST    /api/users          # Usuarios
+GET/POST    /api/loans          # Préstamos
+GET/POST    /api/reservations   # Reservas
+GET         /api/history        # Historial
+GET         /api/stats          # Estadísticas
+```
 
-To learn more about Next.js, take a look at the following resources:
+## 💡 Características Técnicas
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- ✅ Patrón Singleton en servicios
+- ✅ Almacenamiento en memoria
+- ✅ Sistema de multas: $500/día
+- ✅ Validaciones completas
+- ✅ Notificaciones visuales
+- ✅ Sin errores de TypeScript/ESLint
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📄 Documentación
 
-## Deploy on Vercel
+- **README.md** - Este archivo (guía rápida)
+- **DISEÑO_TECNICO.md** - Análisis técnico detallado
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 👨‍💻 Comandos
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run dev      # Desarrollo
+npm run build    # Producción
+npm run start    # Servidor producción
+npm run lint     # Linter
+```
+
+---
+
+**Proyecto académico** - Curso de Estructuras de Datos

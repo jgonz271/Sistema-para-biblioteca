@@ -157,7 +157,7 @@ export class ReservationService {
   public cancelAllUserReservations(userId: string): number {
     let cancelledCount = 0;
 
-    this.reservationQueues.forEach((queue, bookId) => {
+    this.reservationQueues.forEach((queue) => {
       const removed = queue.remove(
         res => res.usuarioId === userId && res.activa
       );
