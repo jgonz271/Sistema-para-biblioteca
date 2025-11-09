@@ -1,35 +1,60 @@
 /**
- * GET /api/users - Obtener todos los usuarios o buscar
- * POST /api/users - Crear un nuevo usuario
+ * Users API V2 - Con Árboles
+ * ?email - Búsqueda por email O(log n)
+ * ?namePrefix - Búsqueda por prefijo
+ * ?autocomplete - Autocompletado
+ * ?sorted - Ordenados por email
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { UserService, HistoryService } from '@/services';
+import { UserServiceV2, HistoryService } from '@/services';
 import type { CreateUserDTO } from '@/types';
 
-const userService = UserService.getInstance();
+const userService = UserServiceV2.getInstance();
 const historyService = HistoryService.getInstance();
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search');
+    const email = searchParams.get('email');
+    const namePrefix = searchParams.get('namePrefix');
+    const autocomplete = searchParams.get('autocomplete');
     const active = searchParams.get('active');
+    const sorted = searchParams.get('sorted');
 
     let users;
 
-    if (search) {
+    if (email) {
+      const user = userService.findByEmail(email);
+      users = user ? [user] : [];
+    }
+    else if (autocomplete) {
+      const limit = parseInt(searchParams.get('limit') || '10');
+      users = userService.autocompleteNames(autocomplete, limit);
+    }
+    else if (namePrefix) {
+      users = userService.searchByName(namePrefix);
+    }
+    else if (search) {
       users = userService.searchByName(search);
-    } else if (active === 'true') {
+    }
+    else if (active === 'true') {
       users = userService.getActiveUsers();
-    } else {
-      users = userService.getAllUsers();
+    }
+    else {
+      users = sorted === 'true'
+        ? userService.getAllUsersSorted()
+        : userService.getAllUsers();
     }
 
     return NextResponse.json({
       success: true,
       data: users,
       count: users.length,
+      performance: searchParams.get('debug') === 'true'
+        ? userService.getPerformanceInfo()
+        : undefined,
     });
   } catch (error) {
     return NextResponse.json(

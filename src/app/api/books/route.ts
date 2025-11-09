@@ -1,41 +1,64 @@
 /**
- * API Route para gestión de Libros
- * GET /api/books - Obtener todos los libros o buscar
- * POST /api/books - Crear un nuevo libro
+ * Books API V2 - Con Árboles
+ * ?search - Búsqueda multi-criterio
+ * ?isbn - Búsqueda por ISBN O(log n)
+ * ?titlePrefix - Búsqueda por prefijo
+ * ?autocomplete - Autocompletado
+ * ?sorted - Ordenados por ISBN
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { BookService } from '@/services';
+import { BookServiceV2 } from '@/services';
 import type { CreateBookDTO, BookCategory } from '@/types';
 
-const bookService = BookService.getInstance();
+const bookService = BookServiceV2.getInstance();
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search');
+    const isbn = searchParams.get('isbn');
+    const titlePrefix = searchParams.get('titlePrefix');
+    const autocomplete = searchParams.get('autocomplete');
     const category = searchParams.get('category');
     const available = searchParams.get('available');
+    const sorted = searchParams.get('sorted');
 
     let books;
 
-    if (search) {
-      // Buscar por título o autor
-      const byTitle = bookService.searchByTitle(search);
-      const byAuthor = bookService.searchByAuthor(search);
-      books = [...new Set([...byTitle, ...byAuthor])];
-    } else if (category) {
+    if (isbn) {
+      const book = bookService.searchByISBN(isbn);
+      books = book ? [book] : [];
+    }
+    else if (autocomplete) {
+      const limit = parseInt(searchParams.get('limit') || '10');
+      books = bookService.autocompleteTitles(autocomplete, limit);
+    }
+    else if (titlePrefix) {
+      books = bookService.searchByTitle(titlePrefix);
+    }
+    else if (search) {
+      books = bookService.smartSearch(search);
+    }
+    else if (category) {
       books = bookService.filterByCategory(category as BookCategory);
-    } else if (available === 'true') {
+    }
+    else if (available === 'true') {
       books = bookService.getAvailableBooks();
-    } else {
-      books = bookService.getAllBooks();
+    }
+    else {
+      books = sorted === 'true'
+        ? bookService.getAllBooksSorted()
+        : bookService.getAllBooks();
     }
 
     return NextResponse.json({
       success: true,
       data: books,
       count: books.length,
+      performance: searchParams.get('debug') === 'true'
+        ? bookService.getPerformanceInfo()
+        : undefined,
     });
   } catch (error) {
     return NextResponse.json(
@@ -52,7 +75,6 @@ export async function POST(request: NextRequest) {
   try {
     const body: CreateBookDTO = await request.json();
 
-    // Validaciones básicas
     if (!body.titulo || !body.autor || !body.isbn) {
       return NextResponse.json(
         {

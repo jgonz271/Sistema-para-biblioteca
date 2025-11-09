@@ -5,8 +5,8 @@
 
 import { DynamicArray } from '@/lib/data-structures';
 import type { Loan, CreateLoanDTO } from '@/types';
-import { BookService } from './BookService';
-import { UserService } from './UserService';
+import { BookServiceV2 } from './BookServiceV2';
+import { UserServiceV2 } from './UserServiceV2';
 import { ReservationService } from './ReservationService';
 import { HistoryService } from './HistoryService';
 
@@ -14,15 +14,15 @@ export class LoanService {
   private loans: DynamicArray<Loan>;
   private static instance: LoanService;
 
-  private bookService: BookService;
-  private userService: UserService;
+  private bookService: BookServiceV2;
+  private userService: UserServiceV2;
   private reservationService: ReservationService;
   private historyService: HistoryService;
 
   private constructor() {
     this.loans = new DynamicArray<Loan>();
-    this.bookService = BookService.getInstance();
-    this.userService = UserService.getInstance();
+    this.bookService = BookServiceV2.getInstance();
+    this.userService = UserServiceV2.getInstance();
     this.reservationService = ReservationService.getInstance();
     this.historyService = HistoryService.getInstance();
   }
