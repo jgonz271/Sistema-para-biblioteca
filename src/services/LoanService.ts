@@ -9,6 +9,7 @@ import { BookServiceV2 } from './BookServiceV2';
 import { UserServiceV2 } from './UserServiceV2';
 import { ReservationService } from './ReservationService';
 import { HistoryService } from './HistoryService';
+import { GraphService } from './GraphService';
 
 export class LoanService {
   private loans: DynamicArray<Loan>;
@@ -18,6 +19,7 @@ export class LoanService {
   private userService: UserServiceV2;
   private reservationService: ReservationService;
   private historyService: HistoryService;
+  private graphService: GraphService;
 
   private constructor() {
     this.loans = new DynamicArray<Loan>();
@@ -25,6 +27,19 @@ export class LoanService {
     this.userService = UserServiceV2.getInstance();
     this.reservationService = ReservationService.getInstance();
     this.historyService = HistoryService.getInstance();
+    this.graphService = GraphService.getInstance();
+    this.initializeGraphFromExistingData();
+  }
+
+  /**
+   * Inicializa el grafo con datos existentes de usuarios y libros
+   */
+  private initializeGraphFromExistingData(): void {
+    const users = this.userService.getAllUsers();
+    const books = this.bookService.getAllBooks();
+    
+    users.forEach(user => this.graphService.addUser(user.id));
+    books.forEach(book => this.graphService.addBook(book.id));
   }
 
   /**
@@ -111,6 +126,9 @@ export class LoanService {
 
     // Guardar el préstamo
     this.loans.push(loan);
+
+    // Registrar en el grafo para recomendaciones
+    this.graphService.recordLoan(usuarioId, libroId);
 
     this.historyService.logLoan(
       usuarioId,
