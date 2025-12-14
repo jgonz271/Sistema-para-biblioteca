@@ -314,6 +314,201 @@ Todos los servicios implementan Singleton para:
 
 ---
 
+## 10. Implementación V3 - Grafos
+
+### 10.1 Arquitectura de Grafos
+
+**Decisión:** Implementar sistema multi-grafo con tres grafos complementarios
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    SISTEMA DE GRAFOS V3                      │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌──────────────────┐    ┌──────────────────┐               │
+│  │   USUARIOS (U)   │    │    LIBROS (L)    │               │
+│  │   ○ ○ ○ ○ ○     │    │    □ □ □ □ □    │               │
+│  └────────┬─────────┘    └────────┬─────────┘               │
+│           │                       │                          │
+│           │    G1: Usuario-Libro  │                          │
+│           │    (Bipartito/Dirigido/Ponderado)                │
+│           └───────────────────────┘                          │
+│                                                              │
+│  ┌──────────────────┐    ┌──────────────────┐               │
+│  │ G3: Usuario-     │    │ G2: Libro-Libro  │               │
+│  │     Usuario      │    │ (Similitud)      │               │
+│  │ ○───○───○       │    │ □───□───□       │               │
+│  │ (Jaccard)        │    │ (Jaccard)        │               │
+│  └──────────────────┘    └──────────────────┘               │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 10.2 Tipos de Grafos Implementados
+
+| Grafo | Tipo | Nodos | Aristas | Uso |
+|-------|------|-------|---------|-----|
+| G1: Usuario-Libro | Bipartito, Dirigido, Ponderado | Usuarios + Libros | Préstamos (peso = cantidad) | Historial de interacciones |
+| G2: Libro-Libro | No Dirigido, Ponderado | Libros | Similitud Jaccard | Libros relacionados |
+| G3: Usuario-Usuario | No Dirigido, Ponderado | Usuarios | Similitud Jaccard | Usuarios similares |
+
+### 10.3 Representación: Lista de Adyacencia
+
+**Decisión:** Usar lista de adyacencia en lugar de matriz
+
+**Justificación:**
+- Grafo disperso (no todos los usuarios leen todos los libros)
+- Espacio: O(V + E) vs O(V²) de matriz
+- Con 200 libros y 50 usuarios → ~1,700 aristas estimadas
+- Acceso a vecinos: O(1)
+
+```typescript
+// Estructura interna
+adjacencyList: Map<string, Map<string, number>>
+// nodeId → Map<neighborId, weight>
+```
+
+### 10.4 Algoritmos Implementados
+
+#### Recorridos
+- **BFS (Breadth-First Search):** O(V + E) - Exploración por niveles
+- **DFS (Depth-First Search):** O(V + E) - Exploración en profundidad
+
+#### Caminos
+- **Dijkstra:** O((V + E) log V) - Camino más corto ponderado
+
+#### Similitud
+- **Índice de Jaccard:** J(A,B) = |A ∩ B| / |A ∪ B|
+- **Similitud del Coseno:** Para vectores de características
+- **Adamic-Adar:** Penaliza vecinos muy conectados
+
+#### Análisis
+- **Centralidad de Grado:** Identificar nodos más conectados
+- **Componentes Conectados:** Detectar comunidades
+
+### 10.5 Funcionalidades del Sistema de Recomendaciones
+
+| Funcionalidad | Método | Complejidad |
+|---------------|--------|-------------|
+| Recomendaciones personalizadas | `getRecommendationsForUser()` | O(k × m) |
+| Libros relacionados | `getRelatedBooks()` | O(u × b) |
+| Libros similares | `getSimilarBooks()` | O(k log k) |
+| Usuarios similares | `getSimilarUsers()` | O(k log k) |
+| Camino entre libros | `findConnectionBetweenBooks()` | O((V+E) log V) |
+| Comunidades de lectores | `findReaderCommunities()` | O(V + E) |
+| Libros populares | `getMostPopularBooks()` | O(L log L) |
+
+### 10.6 Integración con Servicios Existentes
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    FLUJO DE PRÉSTAMO V3                      │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  LoanService.createLoan()                                    │
+│       │                                                      │
+│       ├──→ BookServiceV2 (actualizar copias)                │
+│       ├──→ UserServiceV2 (actualizar préstamos)             │
+│       ├──→ HistoryService (registrar operación)             │
+│       └──→ GraphService.recordLoan() ←── NUEVO V3           │
+│                 │                                            │
+│                 ├──→ Actualizar G1 (Usuario-Libro)          │
+│                 ├──→ Recalcular G2 (Libro-Libro)            │
+│                 └──→ Recalcular G3 (Usuario-Usuario)        │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 10.7 API Endpoints V3
+
+```
+# Recomendaciones
+GET /api/recommendations?type=books&userId=<id>
+GET /api/recommendations?type=related&bookId=<id>
+GET /api/recommendations?type=similar-books&bookId=<id>
+GET /api/recommendations?type=similar-users&userId=<id>
+GET /api/recommendations?type=popular
+GET /api/recommendations?type=communities
+GET /api/recommendations?type=dashboard&userId=<id>
+GET /api/recommendations?type=stats
+
+# Análisis de Grafos
+GET /api/graphs?action=stats
+GET /api/graphs?action=path-books&from=<id>&to=<id>
+GET /api/graphs?action=path-users&from=<id>&to=<id>
+GET /api/graphs?action=user-books&id=<userId>
+GET /api/graphs?action=book-users&id=<bookId>
+POST /api/graphs { action: 'rebuild' }
+```
+
+---
+
+## 11. Organización del Código
+
+### 11.1 Estructura de Servicios
+
+```
+src/services/
+├── index.ts              # Exportaciones centralizadas
+├── v1/                   # Estructuras Lineales
+│   ├── BookService.ts    # LinkedList
+│   ├── UserService.ts    # LinkedList
+│   └── index.ts
+├── v2/                   # Árboles
+│   ├── BookServiceV2.ts  # AVL + Trie + LinkedList
+│   ├── UserServiceV2.ts  # AVL + Trie + LinkedList
+│   └── index.ts
+├── v3/                   # Grafos
+│   ├── GraphService.ts   # Multi-grafo
+│   ├── RecommendationService.ts
+│   └── index.ts
+└── core/                 # Lógica de negocio
+    ├── LoanService.ts    # DynamicArray + GraphService
+    ├── ReservationService.ts  # Queue (FIFO)
+    ├── HistoryService.ts      # Stack (LIFO)
+    └── index.ts
+```
+
+### 11.2 Estructura de Datos
+
+```
+src/lib/data-structures/
+├── index.ts
+├── LinkedList.ts
+├── Queue.ts
+├── Stack.ts
+├── DynamicArray.ts
+├── trees/
+│   ├── AVLTree.ts
+│   ├── Trie.ts
+│   └── index.ts
+└── graphs/
+    ├── Graph.ts          # Clase base genérica
+    ├── algorithms/
+    │   ├── similarity.ts # Jaccard, Coseno, Adamic-Adar
+    │   └── index.ts
+    └── index.ts
+```
+
+---
+
+## 12. Complejidad Temporal Completa
+
+### Operaciones por Versión
+
+| Operación | V1 (Lineal) | V2 (Árboles) | V3 (Grafos) |
+|-----------|-------------|--------------|-------------|
+| Buscar por ISBN | O(n) | O(log n) | O(log n) |
+| Buscar por título | O(n) | O(m) | O(m) |
+| Autocompletar | N/A | O(m) | O(m) |
+| Recomendaciones | N/A | N/A | O(k × m) |
+| Libros similares | N/A | N/A | O(1) lookup |
+| Usuarios similares | N/A | N/A | O(1) lookup |
+| Camino más corto | N/A | N/A | O((V+E) log V) |
+
+
+---
+
 **Autor:** Juan González
-**Fecha:** Noviembre 2025
-**Versión:** 2.0 (Árboles implementados)
+**Fecha:** Diciembre 2025
+**Versión:** 3.0 (Grafos implementados)

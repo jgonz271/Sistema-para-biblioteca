@@ -1,14 +1,24 @@
-// Servicios originales (Estructuras Lineales)
-export { BookService } from './BookService';
-export { UserService } from './UserService';
-export { LoanService } from './LoanService';
-export { ReservationService } from './ReservationService';
-export { HistoryService } from './HistoryService';
+/**
+ * Servicios del Sistema de Biblioteca
+ * Organizados por versión según las estructuras de datos utilizadas
+ */
 
-// Servicios mejorados V2 (Estructuras No Lineales - Árboles)
-export { BookServiceV2 } from './BookServiceV2';
-export { UserServiceV2 } from './UserServiceV2';
+// ============================================================
+// V1: Estructuras Lineales (LinkedList, Queue, Stack, DynamicArray)
+// ============================================================
+export { BookService, UserService } from './v1';
 
-// Servicios V3 (Estructuras No Lineales - Grafos)
-export { GraphService } from './GraphService';
-export { RecommendationService } from './RecommendationService';
+// ============================================================
+// V2: Estructuras No Lineales - Árboles (AVL Tree, Trie)
+// ============================================================
+export { BookServiceV2, UserServiceV2 } from './v2';
+
+// ============================================================
+// V3: Estructuras No Lineales - Grafos
+// ============================================================
+export { GraphService, RecommendationService } from './v3';
+
+// ============================================================
+// Core: Servicios de lógica de negocio (usan V2 internamente)
+// ============================================================
+export { LoanService, ReservationService, HistoryService } from './core';

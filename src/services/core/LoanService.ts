@@ -5,11 +5,11 @@
 
 import { DynamicArray } from '@/lib/data-structures';
 import type { Loan, CreateLoanDTO } from '@/types';
-import { BookServiceV2 } from './BookServiceV2';
-import { UserServiceV2 } from './UserServiceV2';
+import { BookServiceV2 } from '../v2/BookServiceV2';
+import { UserServiceV2 } from '../v2/UserServiceV2';
 import { ReservationService } from './ReservationService';
 import { HistoryService } from './HistoryService';
-import { GraphService } from './GraphService';
+import { GraphService } from '../v3/GraphService';
 
 export class LoanService {
   private loans: DynamicArray<Loan>;

@@ -4,8 +4,8 @@
  */
 
 import { GraphService } from './GraphService';
-import { BookServiceV2 } from './BookServiceV2';
-import { UserServiceV2 } from './UserServiceV2';
+import { BookServiceV2 } from '../v2/BookServiceV2';
+import { UserServiceV2 } from '../v2/UserServiceV2';
 import type { Book, User } from '@/types';
 
 export interface BookRecommendation {
